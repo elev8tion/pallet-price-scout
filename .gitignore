@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+data/
+*.log
+.env
+dist/
+.vnodes/
+.pi/
+.claude/
+.cursor/
+.mcp.json
+.heal-state.md
+.karpathy-session.md

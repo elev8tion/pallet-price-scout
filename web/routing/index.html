@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0f0e">
+  <title>Scout / inventory routing</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ctext x='3' y='32' font-size='36' fill='%23d6ff55'%3E✳%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand"><span class="mark">✳</span><span>PALLET PRICE SCOUT</span><small>INVENTORY ROUTING</small></div>
+        <nav class="app-switch" aria-label="Workspace">
+          <a href="/">Scan</a>
+          <a href="/routing/" aria-current="page">Routing</a>
+        </nav>
+      </div>
+      <div class="runtime"><span class="dot"></span><span>DEMO WORKSPACE · NO LIVE CONNECTIONS</span></div>
+    </header>
+    <div class="layout">
+      <aside class="rail">
+        <div class="rail-intro"><div class="eyebrow">FROM SCAN TO SELL-THROUGH</div><h1>The right items.<br>The right <em>place.</em></h1><p class="muted">Keep your best sellers moving.<br>Build more value into the rest.</p></div>
+        <nav aria-label="Workflow">
+          <a href="#overview" data-view="overview"><span class="nav-number">01</span>Overview<span class="nav-arrow">↗</span></a>
+          <a href="#analysis" data-view="analysis"><span class="nav-number">02</span>Analysis results<span class="nav-count">16</span></a>
+          <a href="#singles" data-view="singles"><span class="nav-number">03</span>Single-item pulls<span class="nav-count" id="pull-count"></span></a>
+          <a href="#pallets" data-view="pallets"><span class="nav-number">04</span>Pallet builder<span class="nav-arrow">↗</span></a>
+          <a href="#dispatch" data-view="dispatch"><span class="nav-number">05</span>Packing & dispatch<span class="nav-count" id="dispatch-count">0</span></a>
+        </nav>
+        <div class="location-box"><div class="small-label">SINGLE-ITEM DESTINATION</div><strong><span class="location-dot"></span>Main Street store</strong><span class="muted">Sample location · 30-day sales</span><div class="location-line"><span>Sales history</span><span class="lime">DEMO LOADED</span></div></div>
+        <div class="rail-bottom"><span class="small-label">THE PALLET RULE</span><p>Retail value ≥ sale price <span class="lime">× 1.30</span></p><small>Retail reference value, not profit or a guarantee of resale proceeds.</small><button class="text-button" id="reset-demo">↻ Reset demo</button></div>
+      </aside>
+      <main id="main" tabindex="-1"></main>
+    </div>
+    <footer><span>SCOUT / ROUTING WORKSPACE <span class="muted">·</span> LOCAL DEMO</span><span>FICTIONAL INVENTORY & SALES · NOTHING IS SENT TO A REAL STORE</span></footer>
+  </div>
+  <dialog id="dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" type="module"></script>
+</body>
+</html>

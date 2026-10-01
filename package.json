@@ -1,0 +1,23 @@
+{
+  "name": "pallet-price-scout",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Localhost web workspace: pallet scan plus inventory routing",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts",
+    "phase1": "tsx src/agent/phase1-report.ts",
+    "start": "tsx src/server/index.ts",
+    "dev": "tsx watch src/server/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@fastify/multipart": "^10.1.1",
+    "fastify": "^5.12.3"
+  }
+}
