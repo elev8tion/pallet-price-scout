@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { extname } from "node:path";
+import { homedir } from "node:os";
+import { extname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { assertSupportedVersion, resolvePiInstallation, type PiInstallation } from "./installation.js";
 import { readModelCatalog, resolveScopedModels } from "./model-selection.js";
@@ -102,9 +103,9 @@ export async function createPhase1Runtime(options: { cwd: string; agentDir?: str
   const installation = resolvePiInstallation();
   const bridge: WebBridge = {};
   (globalThis as any).__palletScoutWebBridge = bridge;
-  assertSupportedVersion(installation, 0);
+  assertSupportedVersion(installation);
   const api = await import(pathToFileURL(installation.moduleEntry).href);
-  const agentDir = options.agentDir ?? "/Users/kcdacre8tor/.pi/agent";
+  const agentDir = options.agentDir ?? process.env.PI_AGENT_DIR ?? join(homedir(), ".pi/agent");
   const settings = api.SettingsManager.create(options.cwd, agentDir, { projectTrusted: true });
   const filteredPaths = new Set<string>();
   let scopedDiagnostics: any[] = [];

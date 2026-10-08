@@ -62,6 +62,7 @@ export function withCoordScale(input: FindingsInput, width: number, height: numb
 
 export class AnalysisWorker {
   private runtimePromise: ReturnType<typeof createPhase1Runtime> | undefined;
+  private installationVersion: string | null = null;
   private active = false;
   private stopping = false;
   private readonly queued: Array<{ runId: string; onEvent: (event: any) => void }> = [];
@@ -79,10 +80,12 @@ export class AnalysisWorker {
     this.runtimePromise = this.runtimeFactory
       ? this.runtimeFactory()
       : createPhase1Runtime({ cwd: this.cwd, persistent: true, bindExtensions: true });
-    await this.runtimePromise;
+    const runtime = await this.runtimePromise;
+    this.installationVersion = runtime.installation.version;
   }
 
   get ready(): boolean { return Boolean(this.runtimePromise); }
+  get piVersion(): string | null { return this.installationVersion; }
   get busy(): boolean { return this.active; }
 
   enqueue(runId: string, onEvent: (event: any) => void): void {
@@ -109,6 +112,7 @@ export class AnalysisWorker {
     const runtime = await this.runtimePromise;
     if (runtime) await runtime.dispose();
     this.runtimePromise = undefined;
+    this.installationVersion = null;
   }
 
   private emit(runId: string, type: string, payload: unknown, onEvent: (event: any) => void): void {

@@ -6,9 +6,11 @@ import { join } from "node:path";
 import { Database, defaultDatabasePath } from "../db/database.js";
 import { readModelCatalog } from "../agent/model-selection.js";
 import { createAsset } from "../scout/assets.js";
+import { buildRoutingBatch } from "../routing/adapter.js";
 import { AnalysisWorker, newRunId } from "../scout/worker.js";
 import { DataLock } from "./lock.js";
 import { PUBLIC_FILE_ROUTES, resolvePublicPage } from "./public-pages.js";
+import { cookieAttributes, csrfCookieAttributes, hostAllowed, openModeEnabled } from "./access.js";
 
 const cwd = process.cwd();
 const port = Number(process.env.PORT ?? 47831);
@@ -43,12 +45,6 @@ function sameSecret(actual: string | undefined, expected: string): boolean {
 
 function cookieValue(header: string | undefined, name: string): string | undefined {
   return header?.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
-}
-
-function hostAllowed(host: string | undefined): boolean {
-  if (!host) return false;
-  const hostname = host.split(":")[0].replace(/^\[/, "").replace(/\]$/, "");
-  return hostname === "127.0.0.1" || hostname === "localhost" || hostname === "::1";
 }
 
 function originAllowed(origin: string | undefined, host: string | undefined): boolean {
@@ -90,12 +86,13 @@ function publicRun(run: any): any {
 
 export async function startServer(options: { listen?: boolean } = {}): Promise<{ app: any; url: string; close: () => Promise<void> }> {
   const dataDir = join(cwd, "data");
+  mkdirSync(dataDir, { recursive: true });
   const lock = new DataLock(dataDir);
   lock.acquire();
   try {
   sessionToken = loadSessionToken(dataDir);
   // Open SSE streams never go idle; without forced closing, shutdown waits on them indefinitely.
-  const app = Fastify({ logger: false, forceCloseConnections: true });
+  const app = Fastify({ logger: false, forceCloseConnections: true, trustProxy: openModeEnabled() });
   await app.register(multipart, { limits: { fileSize: 30 * 1024 * 1024, files: 1 } });
   const db = new Database(defaultDatabasePath(cwd));
   const worker = new AnalysisWorker(db, dataDir, cwd);
@@ -118,19 +115,23 @@ export async function startServer(options: { listen?: boolean } = {}): Promise<{
   app.get("/routing", async (_request, reply) => reply.redirect("/routing/"));
 
   app.get<{ Querystring: { pair?: string } }>("/api/bootstrap", async (request, reply) => {
+    const sessionAccepted = sameSecret(cookieValue(request.headers.cookie, "scout_session"), sessionToken);
+    if (openModeEnabled()) {
+      reply.header("Set-Cookie", [`scout_session=${sessionToken}; ${cookieAttributes(request)}`, `scout_csrf=${csrfToken}; ${csrfCookieAttributes(request)}`]);
+      return { ok: true, csrfToken, open: true };
+    }
     const pairAccepted = request.query.pair ? sameSecret(request.query.pair, pairingToken) : false;
     if (pairAccepted && pairingConsumed) return reply.code(401).send({ error: "PAIRING_EXPIRED" });
-    const sessionAccepted = sameSecret(cookieValue(request.headers.cookie, "scout_session"), sessionToken);
     if (!pairAccepted && !sessionAccepted) return reply.code(401).send({ error: request.query.pair ? "PAIRING_INVALID" : "AUTH_REQUIRED" });
     if (pairAccepted) pairingConsumed = true;
-    reply.header("Set-Cookie", [`scout_session=${sessionToken}; HttpOnly; SameSite=Strict; Path=/`, `scout_csrf=${csrfToken}; SameSite=Strict; Path=/`]);
+    reply.header("Set-Cookie", [`scout_session=${sessionToken}; ${cookieAttributes(request)}`, `scout_csrf=${csrfToken}; ${csrfCookieAttributes(request)}`]);
     return { ok: true, csrfToken };
   });
 
   app.get("/api/health", async (_request, reply) => reply.send({ ok: true }));
   app.get("/api/runtime", async (request, reply) => {
     if (!auth(request, reply)) return;
-    return { piVersion: "0.85.1", workerReady: worker.ready, workerBusy: worker.busy, cwd };
+    return { piVersion: worker.piVersion, workerReady: worker.ready, workerBusy: worker.busy, ...(openModeEnabled() ? {} : { cwd }) };
   });
   app.get("/api/models", async (request, reply) => {
     if (!auth(request, reply)) return;
@@ -220,6 +221,19 @@ export async function startServer(options: { listen?: boolean } = {}): Promise<{
     const run = db.getRun(request.params.id);
     return run ? publicRun(run) : reply.code(404).send({ error: "NOT_FOUND" });
   });
+  app.get<{ Params: { id: string } }>("/api/runs/:id/routing", async (request, reply) => {
+    if (!auth(request, reply)) return;
+    const run = db.getRun(request.params.id);
+    if (!run) return reply.code(404).send({ error: "NOT_FOUND" });
+    const artifact = db.getArtifact(`${request.params.id}-findings`);
+    if (!artifact) return reply.code(409).send({ error: "ROUTING_NOT_READY", message: "This run has no completed findings artifact" });
+    try {
+      const report = JSON.parse(readFileSync(artifact.path, "utf8"));
+      return buildRoutingBatch(request.params.id, report);
+    } catch (error) {
+      return reply.code(500).send({ error: "ROUTING_INVALID", message: error instanceof Error ? error.message : String(error) });
+    }
+  });
 
   if (options.listen !== false) {
     try {
@@ -228,7 +242,12 @@ export async function startServer(options: { listen?: boolean } = {}): Promise<{
       lock.release();
       throw error;
     }
-    console.log(`Pallet Price Scout: http://127.0.0.1:${port}/?pair=${pairingToken}`);
+    if (openModeEnabled()) {
+      console.log(`Pallet Price Scout open demo: http://127.0.0.1:${port}/`);
+      console.log(`  Put HTTPS in front (cloudflared tunnel). Anyone with that URL can scan using this machine's Pi.`);
+    } else {
+      console.log(`Pallet Price Scout: http://127.0.0.1:${port}/?pair=${pairingToken}`);
+    }
     console.log(`  Scan     http://127.0.0.1:${port}/`);
     console.log(`  Routing  http://127.0.0.1:${port}/routing/`);
   }

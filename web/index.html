@@ -28,6 +28,8 @@
           <input id="image-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif">
           <span class="upload-icon">↥</span><strong>Drop a photo here</strong><span>or click to browse</span><small>JPEG · PNG · WEBP · HEIC · 30 MB MAX</small>
         </label>
+        <button id="use-demo-photo" class="button ghost" type="button">USE THE DEMO PHOTO <span>→</span></button>
+        <small class="demo-photo-note">Bundled sample pallet photo · loads from this page, not your computer</small>
         <div id="file-status" class="file-status hidden"></div>
         <label class="field-label" for="model-select">IMAGE MODEL</label>
         <select id="model-select" class="select"></select>
@@ -51,7 +53,7 @@
           </div>
           <div class="findings-cta">
             <a class="button primary" href="/routing/">Route this inventory →</a>
-            <span class="muted">Opens the routing workspace. Sample store data until live findings import exists.</span>
+            <span class="muted">Opens routing with these findings. Store sales and inventory are deterministic simulated data.</span>
           </div>
           <div id="findings-list" class="findings-list"></div>
         </div>

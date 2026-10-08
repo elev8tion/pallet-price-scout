@@ -176,6 +176,8 @@ async function displayFindings(runId, artifactId) {
   // Guard against stale results from a previously selected run.
   if (connectedRunId !== runId || connectedGeneration !== selectionGeneration) return;
   currentFindings = report;
+  const routingLink = document.querySelector('.findings-cta a');
+  if (routingLink) routingLink.href = `/routing/?run=${encodeURIComponent(runId)}`;
   $('findings-total').textContent = report.totalValue == null ? '—' : `$${Number(report.totalValue).toFixed(2)}`;
   $('findings-count').textContent = `${report.pricedCount} / ${report.items.length}`;
   $('findings-unknown').textContent = String(report.unknownPriceCount);
@@ -283,6 +285,18 @@ async function analyze() {
   } catch (error) { addEvent(error.message, 'error'); updateAnalyze(); }
 }
 
+$('use-demo-photo').addEventListener('click', async () => {
+  try {
+    const response = await fetch('/demo/pallet-demo.jpg');
+    if (!response.ok) throw new Error('Demo photo unavailable on this deployment');
+    const blob = await response.blob();
+    await upload(new File([blob], 'demo-pallet.jpg', { type: 'image/jpeg' }));
+  } catch (error) {
+    $('file-status').classList.remove('hidden');
+    $('file-status').textContent = error.message;
+    $('file-status').style.color = 'var(--orange)';
+  }
+});
 $('image-input').addEventListener('change', (event) => upload(event.target.files[0]));
 $('dropzone').addEventListener('dragover', (event) => { event.preventDefault(); $('dropzone').classList.add('drag'); });
 $('dropzone').addEventListener('dragleave', () => $('dropzone').classList.remove('drag'));

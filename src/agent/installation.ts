@@ -12,6 +12,7 @@ export interface PiInstallation {
 const KNOWN_PACKAGE_ROOTS = [
   "/opt/homebrew/lib/node_modules/@earendil-works/pi-coding-agent",
   "/usr/local/lib/node_modules/@earendil-works/pi-coding-agent",
+  "/usr/lib/node_modules/@earendil-works/pi-coding-agent",
 ];
 
 function executablePath(): string | undefined {
@@ -61,9 +62,9 @@ export function resolvePiInstallation(): PiInstallation {
   };
 }
 
-export function assertSupportedVersion(installation: PiInstallation, expectedMajor = 0): void {
+export function assertSupportedVersion(installation: PiInstallation, supportedMajors = [0, 1]): void {
   const major = Number.parseInt(installation.version.split(".")[0] ?? "-1", 10);
-  if (!Number.isFinite(major) || major !== expectedMajor) {
-    throw new Error(`PI_VERSION_UNSUPPORTED: expected Pi major ${expectedMajor}, found ${installation.version}`);
+  if (!Number.isFinite(major) || !supportedMajors.includes(major)) {
+    throw new Error(`PI_VERSION_UNSUPPORTED: expected Pi major ${supportedMajors.join(" or ")}, found ${installation.version}`);
   }
 }

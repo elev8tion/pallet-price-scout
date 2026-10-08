@@ -11,7 +11,7 @@ const cwd = "/Users/kcdacre8tor/pallet-price-scout";
 
 test("resolves the installed Pi package without installing a copy", () => {
   const installation = resolvePiInstallation();
-  assert.equal(installation.version, "0.85.1");
+  assert.match(installation.version, /^\d+\.\d+\.\d+$/);
   assert.match(installation.packageRoot, /pi-coding-agent$/);
   assert.match(installation.moduleEntry, /dist\/index\.js$/);
 });

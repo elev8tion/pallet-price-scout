@@ -4,7 +4,7 @@ One localhost web project. Scan and routing share a single `npm start`.
 
 **Status: Phase 1 compatibility spike and first local workspace slice implemented, including sorted findings publication in the Scout UI.**
 
-Upload an inventory photograph, run the `pallet-price-scout` skill through the installed Pi agent, then open `/routing/` for the singles-vs-pallets workspace. This folder is the whole app.
+Upload an inventory photograph, run the `pallet-price-scout` skill through the installed Pi agent, then open `/routing/` for the singles-vs-pallets workspace. This folder is the whole app. Oracle deployment follows the shared osoance topology in [docs/ORACLE-DEPLOY.md](docs/ORACLE-DEPLOY.md).
 
 ## Planning documents
 
@@ -45,9 +45,32 @@ Open the pairing URL printed by `npm start` in a browser. That is the combined l
 - `/` — scan and Pi analysis (entry)
 - `/routing/` — inventory routing demo (singles vs pallets)
 
-Same process, same origin. Routing still uses fictional store data; live findings are not imported yet. The server binds to `127.0.0.1`, exchanges the one-time pairing token for an HttpOnly session cookie, loads the installed Pi runtime, and queues image analysis through Pi's native image attachment. The selected model must advertise image input. Only one `npm start` at a time (`data/.scout.lock`).
+Same process, same origin. Completed vision findings can open directly in `/routing/?run=<runId>`; store sales, stock, and routing decisions are deterministic simulated data and are labeled in the UI. The server binds to `127.0.0.1`, exchanges the one-time pairing token for an HttpOnly session cookie, loads the installed Pi runtime, and queues image analysis through Pi's native image attachment. The selected model must advertise image input. Only one `npm start` at a time (`data/.scout.lock`).
+
+## Short-lived shared demo (people you know)
+
+No codes and no scan caps. Anyone with the URL uses **this machine's** Pi and provider keys. History is shared. Stop the process when the demo is over.
+
+```bash
+brew install cloudflared   # once
+SCOUT_OPEN=1 npm start
+# in another terminal:
+cloudflared tunnel --url http://127.0.0.1:47831
+```
+
+Send them the `https://….trycloudflare.com` address (Scan and `/routing/` are on it). Default `SCOUT_OPEN=1` allows `*.trycloudflare.com`. For a named host: `SCOUT_HOSTS=demo.example.com SCOUT_OPEN=1 npm start`. The app still listens on loopback only; the tunnel is the HTTPS front door.
 
 Phase 1 parity evidence is written to [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) and [`docs/phase1-parity.json`](docs/phase1-parity.json). The worker filters only the global `pi-ui-bridge.ts` so it does not open a piDocs poller; app-local dialog/artifact bridging and structured report publication remain later phases.
+
+## Oracle deployment
+
+Use the existing host ops kit; do not create a second Pi installation or expose the Node port:
+
+```bash
+/Users/kcdacre8tor/osoance-host/add-app.sh pallet-price-scout /Users/kcdacre8tor/pallet-price-scout
+```
+
+See [docs/ORACLE-DEPLOY.md](docs/ORACLE-DEPLOY.md) for the host contract and verification commands.
 
 ## Next action
 

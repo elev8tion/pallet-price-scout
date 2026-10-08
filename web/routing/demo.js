@@ -1,6 +1,6 @@
 // Fictional fixture. No live analysis, retail research, or POS connection.
 export const TIERS = [400, 600, 900, 1400];
-export const PRODUCTS = [
+export let PRODUCTS = [
   {id:'NIN-101', name:'Ninja air fryer', detail:'AF101 · 4 qt · black', category:'Kitchen', mark:'NI', price:100, qty:14, sold:48, days:3.2, stock:2, match:'exact', confidence:99, condition:'Ready', trend:[18,26,35,48]},
   {id:'JBL-FL6', name:'JBL Flip 6 speaker', detail:'Portable Bluetooth · black', category:'Electronics', mark:'JB', price:130, qty:10, sold:36, days:4.1, stock:1, match:'exact', confidence:98, condition:'Ready', trend:[14,22,28,36]},
   {id:'SHK-NV', name:'Shark upright vacuum', detail:'Navigator · NV360', category:'Home', mark:'SH', price:180, qty:8, sold:24, days:5.4, stock:1, match:'exact', confidence:98, condition:'Ready', trend:[10,12,18,24]},
@@ -18,6 +18,9 @@ export const PRODUCTS = [
   {id:'DY-V8', name:'Dyson cordless vacuum', detail:'Possible V8 · variant unconfirmed', category:'Home', mark:'DY', price:300, qty:2, sold:20, days:4, stock:0, match:'review', confidence:73, condition:'Review', trend:[9,12,16,20]},
   {id:'HAM-T2', name:'Hamilton Beach toaster', detail:'2-slice · damaged packaging', category:'Kitchen', mark:'HB', price:30, qty:4, sold:6, days:15, stock:2, match:'exact', confidence:95, condition:'Review', trend:[5,8,6,6]}
 ];
+const DEFAULT_PRODUCTS = PRODUCTS;
+export const setProducts = products => { PRODUCTS = products; };
+export const resetProducts = () => { PRODUCTS = DEFAULT_PRODUCTS; };
 export const byId = id => PRODUCTS.find(p => p.id === id);
 export const cents = dollars => Math.round(dollars * 100);
 export const retailTarget = tier => Math.round(cents(tier) * 1.3);
